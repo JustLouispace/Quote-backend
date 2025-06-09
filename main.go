@@ -3,11 +3,13 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"Qoute-backend/config"
 	"Qoute-backend/handlers"
 	"Qoute-backend/middleware"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -29,6 +31,16 @@ func main() {
 
 	// Initialize Gin router
 	router := gin.Default()
+
+	// CORS configuration
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "http://127.0.0.1:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "X-Requested-With", "Accept"},
+		ExposeHeaders:    []string{"Content-Length", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
