@@ -26,30 +26,73 @@ func CreateQuote(c *gin.Context) {
 	c.JSON(http.StatusCreated, quote)
 }
 
-// GetQuotes returns all quotes
+// QuoteResponse represents a quote with its vote count
+type QuoteResponse struct {
+	models.Quote
+	VoteCount int `json:"voteCount"`
+}
+
+// GetQuotes returns all quotes with their vote counts
 func GetQuotes(c *gin.Context) {
 	var quotes []models.Quote
-	result := config.DB.Find(&quotes)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+
+	// Query params
+	author := c.Query("author")
+	search := c.Query("search")
+	sortBy := c.DefaultQuery("sortBy", "created_at")
+	order := c.DefaultQuery("order", "desc")
+
+	db := config.DB.Preload("Votes") // Preload the Votes relationship
+
+	// Filter by author
+	if author != "" {
+		db = db.Where("author = ?", author)
+	}
+
+	// Search in content or author
+	if search != "" {
+		like := "%" + search + "%"
+		db = db.Where("content LIKE ? OR author LIKE ?", like, like)
+	}
+
+	// Sorting
+	if sortBy != "" && (order == "asc" || order == "desc") {
+		db = db.Order(sortBy + " " + order)
+	}
+
+	if err := db.Find(&quotes).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, quotes)
+	// Convert to response format with vote counts
+	response := make([]QuoteResponse, len(quotes))
+	for i, quote := range quotes {
+		response[i] = QuoteResponse{
+			Quote:     quote,
+			VoteCount: len(quote.Votes),
+		}
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
-// GetQuote returns a single quote by ID
+// GetQuote returns a single quote by ID with its vote count
 func GetQuote(c *gin.Context) {
 	id := c.Param("id")
 	var quote models.Quote
 
-	result := config.DB.First(&quote, id)
-	if result.Error != nil {
+	if err := config.DB.Preload("Votes").First(&quote, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Quote not found"})
 		return
 	}
 
-	c.JSON(http.StatusOK, quote)
+	response := QuoteResponse{
+		Quote:     quote,
+		VoteCount: len(quote.Votes),
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // UpdateQuote updates an existing quote

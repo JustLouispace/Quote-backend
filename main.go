@@ -34,7 +34,7 @@ func main() {
 
 	// CORS configuration
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "http://127.0.0.1:5173"},
+		AllowOrigins:     []string{"http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "http://127.0.0.1:5173,http://localhost:3000/"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "X-Requested-With", "Accept"},
 		ExposeHeaders:    []string{"Content-Length", "Content-Type", "Authorization"},
@@ -53,6 +53,9 @@ func main() {
 	router.POST("/register", handlers.Register)
 	router.POST("/login", handlers.Login)
 
+	// Initialize vote handler
+	voteHandler := handlers.NewVoteHandler(config.DB)
+
 	// Protected routes
 	quotes := router.Group("/quotes")
 	quotes.Use(middleware.AuthMiddleware())
@@ -62,6 +65,12 @@ func main() {
 		quotes.GET("/:id", handlers.GetQuote)
 		quotes.PUT("/:id", handlers.UpdateQuote)
 		quotes.DELETE("/:id", handlers.DeleteQuote)
+
+		// Vote routes
+		quotes.POST("/:id/vote", voteHandler.CreateVote)
+		quotes.DELETE("/:id/vote", voteHandler.DeleteVote)
+		quotes.GET("/:id/vote/count", voteHandler.GetVoteCount)
+		quotes.GET("/:id/vote/check", voteHandler.CheckUserVote)
 	}
 
 	// Start server

@@ -180,6 +180,82 @@ Authorization: Bearer <token>
 - 401 Unauthorized: Missing or invalid token
 - 404 Not Found: Quote not found
 
+### Votes
+
+#### Create Vote
+```http
+POST /quotes/{id}/vote
+Authorization: Bearer <token>
+```
+
+**Response (201 Created)**
+```json
+{
+    "message": "Vote recorded successfully",
+    "voteCount": 1
+}
+```
+
+**Error Responses**
+- 400 Bad Request: Invalid quote ID
+- 401 Unauthorized: Missing or invalid token
+- 404 Not Found: Quote not found
+- 409 Conflict: User has already voted for this quote
+
+#### Delete Vote
+```http
+DELETE /quotes/{id}/vote
+Authorization: Bearer <token>
+```
+
+**Response (200 OK)**
+```json
+{
+    "message": "Vote removed successfully",
+    "voteCount": 0
+}
+```
+
+**Error Responses**
+- 400 Bad Request: Invalid quote ID
+- 401 Unauthorized: Missing or invalid token
+- 404 Not Found: Vote not found
+
+#### Get Vote Count
+```http
+GET /quotes/{id}/vote/count
+Authorization: Bearer <token>
+```
+
+**Response (200 OK)**
+```json
+{
+    "count": 5
+}
+```
+
+**Error Responses**
+- 400 Bad Request: Invalid quote ID
+- 404 Not Found: Quote not found
+
+#### Check User Vote
+```http
+GET /quotes/{id}/vote/check
+Authorization: Bearer <token>
+```
+
+**Response (200 OK)**
+```json
+{
+    "has_voted": true
+}
+```
+
+**Error Responses**
+- 400 Bad Request: Invalid quote ID
+- 401 Unauthorized: Missing or invalid token
+- 404 Not Found: Quote not found
+
 ### Health Check
 
 #### Check API Status
@@ -212,8 +288,26 @@ interface Quote {
     id: number;
     content: string;
     author: string;
+    votes: Vote[];
     created_at: string;
     updated_at: string;
+}
+
+interface Vote {
+    id: number;
+    user_id: number;
+    quote_id: number;
+    created_at: string;
+    updated_at: string;
+    user: {
+        id: number;
+        username: string;
+    };
+    quote: {
+        id: number;
+        content: string;
+        author: string;
+    };
 }
 ```
 
@@ -228,19 +322,25 @@ All error responses follow this format:
 ## Authentication Flow
 1. Register a new user using `/register`
 2. Login using `/login` to get a JWT token
-3. Include the token in the Authorization header for all protected endpoints
+3. Include the token in the Authorization header for all protected endpoints:
+   ```
+   Authorization: Bearer <your_jwt_token>
+   ```
 4. Token expires after 24 hours
 
 ## Rate Limiting
 Currently, there is no rate limiting implemented.
 
 ## CORS
-CORS is enabled for all origins in development mode.
+CORS is enabled for the following origins in development mode:
+- http://localhost:3000
+- http://127.0.0.1:3000
+- http://localhost:5173
+- http://127.0.0.1:5173
 
 ## Environment Variables
 Required environment variables:
 ```
 PORT=8080
-JWT_SECRET=your-secret-key
 GIN_MODE=debug
 ``` 
