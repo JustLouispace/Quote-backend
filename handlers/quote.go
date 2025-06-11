@@ -100,9 +100,18 @@ func UpdateQuote(c *gin.Context) {
 	id := c.Param("id")
 	var quote models.Quote
 
-	// First, find the quote
-	if err := config.DB.First(&quote, id).Error; err != nil {
+	// First, find the quote with its votes
+	if err := config.DB.Preload("Votes").First(&quote, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Quote not found"})
+		return
+	}
+
+	// Check if quote has any votes
+	if len(quote.Votes) > 0 {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "Cannot update quote: it has votes",
+			"voteCount": len(quote.Votes),
+		})
 		return
 	}
 
@@ -112,20 +121,39 @@ func UpdateQuote(c *gin.Context) {
 		return
 	}
 
-	config.DB.Save(&quote)
+	if err := config.DB.Save(&quote).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update quote"})
+		return
+	}
+
 	c.JSON(http.StatusOK, quote)
 }
 
-// DeleteQuote deletes a quote
+// DeleteQuote deletes a quote if it has no votes
 func DeleteQuote(c *gin.Context) {
 	id := c.Param("id")
 	var quote models.Quote
 
-	if err := config.DB.First(&quote, id).Error; err != nil {
+	// Find the quote with its votes
+	if err := config.DB.Preload("Votes").First(&quote, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Quote not found"})
 		return
 	}
 
-	config.DB.Delete(&quote)
+	// Check if quote has any votes
+	if len(quote.Votes) > 0 {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "Cannot delete quote: it has votes",
+			"voteCount": len(quote.Votes),
+		})
+		return
+	}
+
+	// Delete the quote
+	if err := config.DB.Delete(&quote).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete quote"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Quote deleted successfully"})
 } 
