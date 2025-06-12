@@ -98,6 +98,12 @@ GET /quotes
 Authorization: Bearer <token>
 ```
 
+**Query Parameters**
+- `author` (string, optional): Filter quotes by author.
+- `search` (string, optional): Search for a term in quote content and author.
+- `sortBy` (string, optional): Field to sort by (`created_at`, `author`, `content`). Defaults to `created_at`.
+- `order` (string, optional): Sort order (`asc` or `desc`). Defaults to `desc`.
+
 **Response (200 OK)**
 ```json
 [
@@ -105,6 +111,7 @@ Authorization: Bearer <token>
         "id": "number",
         "content": "string",
         "author": "string",
+        "vote_count": "number",
         "created_at": "string",
         "updated_at": "string"
     }
@@ -301,6 +308,7 @@ interface Quote {
     content: string;
     author: string;
     votes: Vote[];
+    vote_count: number;
     created_at: string;
     updated_at: string;
 }
@@ -344,15 +352,18 @@ All error responses follow this format:
 Currently, there is no rate limiting implemented.
 
 ## CORS
-CORS is enabled for the following origins in development mode:
+CORS is enabled for the following origins:
 - http://localhost:3000
 - http://127.0.0.1:3000
 - http://localhost:5173
 - http://127.0.0.1:5173
+- https://quote-frontend-zeta.vercel.app
 
 ## Environment Variables
 Required environment variables:
 ```
 PORT=8080
 GIN_MODE=debug
+JWT_SECRET=your-secret-key-here
+DATABASE_DSN=quotes.db
 ``` 

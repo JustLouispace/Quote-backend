@@ -38,9 +38,6 @@ go run main.go
 ```
 The server will start on port 8080 by default. If you set `DATABASE_DSN=:memory:`, the database will be in-memory and reset on each run.
 
-## API Reference
-See [API.md](./API.md) for detailed documentation of all endpoints, request/response formats, authentication, and error codes.
-
 ## Project Structure
 ```
 .
@@ -62,10 +59,10 @@ See [API.md](./API.md) for detailed documentation of all endpoints, request/resp
 ├── .env            # Environment variables (not committed)
 ├── README.md       # Project documentation
 ├── API.md          # API documentation
-## API Reference
-See [API.md](./API.md) for detailed documentation of all endpoints, request/response formats, authentication, and error codes.
+```
 
-## Quick Start
+## Usage Examples
+
 1. Register a new user:
    ```bash
    curl -X POST http://localhost:8080/register \
@@ -92,7 +89,7 @@ See [API.md](./API.md) for detailed documentation of all endpoints, request/resp
 |----------------------------|--------|-----------------------------|--------------|
 | `/register`                | POST   | Register a new user         | No           |
 | `/login`                   | POST   | User login (get JWT)        | No           |
-| `/quotes`                  | GET    | List all quotes             | Yes          |
+| `/quotes`                  | GET    | List all quotes (supports filtering, searching, and sorting) | Yes          |
 | `/quotes`                  | POST   | Create a new quote          | Yes          |
 | `/quotes/{id}`             | GET    | Get quote by ID             | Yes          |
 | `/quotes/{id}`             | PUT    | Update a quote              | Yes          |
@@ -105,6 +102,13 @@ See [API.md](./API.md) for detailed documentation of all endpoints, request/resp
 
 For full details, see [API.md](./API.md).
 
+### CORS
+CORS is enabled for the following origins:
+- `http://localhost:3000`
+- `http://127.0.0.1:3000`
+- `http://localhost:5173`
+- `http://127.0.0.1:5173`
+- `https://quote-frontend-zeta.vercel.app`
 
 ## Development
 
