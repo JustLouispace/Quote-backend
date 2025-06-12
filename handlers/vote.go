@@ -57,6 +57,13 @@ func (h *VoteHandler) CreateVote(c *gin.Context) {
         return
     }
 
+    // Enforce voting only when quote has 0 votes
+    if len(quote.Votes) > 0 {
+        tx.Rollback()
+        c.JSON(http.StatusConflict, gin.H{"error": "Voting is only allowed when the quote has 0 votes"})
+        return
+    }
+
     // Create new vote
     vote := models.Vote{
         UserID:  userID.(uint),
@@ -66,6 +73,13 @@ func (h *VoteHandler) CreateVote(c *gin.Context) {
     if err := tx.Create(&vote).Error; err != nil {
         tx.Rollback()
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create vote"})
+        return
+    }
+
+    // Preload user data for response
+    if err := tx.Preload("User").First(&vote, vote.ID).Error; err != nil {
+        tx.Rollback()
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load vote metadata"})
         return
     }
 
@@ -85,6 +99,7 @@ func (h *VoteHandler) CreateVote(c *gin.Context) {
     c.JSON(http.StatusCreated, gin.H{
         "message":   "Vote recorded successfully",
         "voteCount": voteCount,
+        "vote":      vote,
     })
 }
 

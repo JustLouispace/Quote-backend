@@ -192,7 +192,18 @@ Authorization: Bearer <token>
 ```json
 {
     "message": "Vote recorded successfully",
-    "voteCount": 1
+    "voteCount": 1,
+    "vote": {
+        "id": "number",
+        "user_id": "number",
+        "quote_id": "number",
+        "created_at": "string",
+        "updated_at": "string",
+        "user": {
+            "id": "number",
+            "username": "string"
+        }
+    }
 }
 ```
 
@@ -201,6 +212,7 @@ Authorization: Bearer <token>
 - 401 Unauthorized: Missing or invalid token
 - 404 Not Found: Quote not found
 - 409 Conflict: User has already voted for this quote
+- 409 Conflict: Voting is only allowed when the quote has 0 votes
 
 #### Delete Vote
 ```http

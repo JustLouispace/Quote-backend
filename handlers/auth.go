@@ -2,14 +2,12 @@ package handlers
 
 import (
 	"net/http"
-	"os"
-	"time"
 
 	"Qoute-backend/config"
+	"Qoute-backend/middleware"
 	"Qoute-backend/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -81,13 +79,7 @@ func Login(c *gin.Context) {
 	}
 
 	// Generate JWT token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.ID,
-		"exp":     time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
-	})
-
-	// Sign the token with our secret
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	tokenString, err := middleware.GenerateJWT(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
 		return

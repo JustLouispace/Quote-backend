@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -57,3 +58,14 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 	}
 } 
+
+// GenerateJWT creates a new JWT token for a given user ID
+func GenerateJWT(userID uint) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": userID,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+	})
+
+	// Sign the token with our secret
+	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+}

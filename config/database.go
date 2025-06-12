@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"os"
 
 	"Qoute-backend/models"
 
@@ -14,9 +15,14 @@ var DB *gorm.DB
 
 func InitDB() {
 	var err error
-	
+
+	dsn := os.Getenv("DATABASE_DSN")
+	if dsn == "" {
+		dsn = "quotes.db"
+	}
+
 	// Configure GORM with silent logger
-	DB, err = gorm.Open(sqlite.Open("quotes.db"), &gorm.Config{
+	DB, err = gorm.Open(sqlite.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 
